@@ -62,7 +62,11 @@ def search(es, index_name, query_dict, num_results=3):
     return response['hits']['hits']
 
 if __name__ == '__main__':
-    es = Elasticsearch(["https://localhost:9200/",], basic_auth=("[username]", "[auth]"),verify_certs=False, ssl_show_warn=False)
+    es_url = os.environ.get("ELASTICSEARCH_URL", "https://localhost:9200/")
+    es_username = os.environ.get("ELASTICSEARCH_USERNAME")
+    es_password = os.environ.get("ELASTICSEARCH_PASSWORD")
+    basic_auth = (es_username, es_password) if es_username and es_password else None
+    es = Elasticsearch([es_url], basic_auth=basic_auth, verify_certs=False, ssl_show_warn=False)
 
     index_settings = {
         "mappings": {

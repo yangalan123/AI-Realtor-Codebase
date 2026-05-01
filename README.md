@@ -46,29 +46,57 @@ pip install -r requirements.txt
 
 ### 2. Configure API Keys
 
-You need to set up your OpenAI API key in the relevant files. Replace `"YOUR_KEY"` with your actual OpenAI API key in the following files:
+Only scripts that call hosted LLM APIs require credentials. Set them as environment variables rather than editing source files:
 
-- `user_simulation/predicting_preference_batch_api.py` (line 4)
-- `user_simulation/predict_preference.py` (line 8)
-- `hallucination_detection/check_match_gpt4_soft_match.py` (line 3)
-- `hallucination_detection/check_exact_match_rule_em.py` (line 3)
-- `rag_agents/preference_summary_from_ranking_demo.py` (line 7)
+```bash
+export OPENAI_API_KEY="your-openai-api-key"
+export OPENAI_ORG_ID="your-openai-org-id"  # optional
+```
 
-For example:
-```python
-os.environ["OPENAI_API_KEY"] = "your-actual-api-key-here"
+On Windows PowerShell:
+
+```powershell
+$env:OPENAI_API_KEY = "your-openai-api-key"
+$env:OPENAI_ORG_ID = "your-openai-org-id"  # optional
+```
+
+The Elasticsearch demos read optional connection settings from:
+
+```bash
+export ELASTICSEARCH_URL="https://localhost:9200/"
+export ELASTICSEARCH_USERNAME="elastic"
+export ELASTICSEARCH_PASSWORD="your-password"
 ```
 
 ### 3. Initialize Data
 
 Run the following command to create the initial data:
 
-```python
-from utils import get_original_all_features_data
-all_features = get_original_all_features_data()
+```bash
+python -c "from utils import get_original_all_features_data; get_original_all_features_data()"
 ```
 
 This will download the listing data from Hugging Face and save it to `./data/ai_realtor_listing_data.json`.
+
+### 4. Artifact Smoke Test
+
+The following commands exercise the public, non-API artifact path:
+
+```bash
+python -c "from utils import get_original_all_features_data; get_original_all_features_data()"
+python benchmark/win_rate_plot.py
+python benchmark/generate_synthetic_ratings.py --output ratings.synthetic.pkl
+python benchmark/elo_plot.py --ratings-pkl ratings.synthetic.pkl
+```
+
+Expected outputs:
+
+- `data/ai_realtor_listing_data.json` with 1,883 listing records.
+- `comparison_win_rates_improved.pdf` from `benchmark/win_rate_plot.py`.
+- `ratings.synthetic.pkl`, a non-sensitive ratings file used only for smoke testing.
+- `elo_ratings_grouped.pdf` from `benchmark/elo_plot.py`.
+
+The original `ratings.pkl` used for the paper's Elo visualization is not included in the public repository because it is derived from privacy/ethics-sensitive evaluation artifacts. If you have governed access to that file, place it at `ratings.pkl` or pass its path with `python benchmark/elo_plot.py --ratings-pkl path/to/ratings.pkl`.
 
 ## Project Structure
 
@@ -114,12 +142,16 @@ all_features = get_original_all_features_data()
 ```
 
 ### Running Visualization
-```python
-# Generate ELO plots
-python benchmark/elo_plot.py
-
-# Generate win rate plots
+```bash
+# Generate the win-rate plot
 python benchmark/win_rate_plot.py
+
+# Generate the Elo plot from a governed ratings artifact
+python benchmark/elo_plot.py --ratings-pkl ratings.pkl
+
+# Generate the Elo plot from a non-sensitive synthetic ratings artifact
+python benchmark/generate_synthetic_ratings.py --output ratings.synthetic.pkl
+python benchmark/elo_plot.py --ratings-pkl ratings.synthetic.pkl
 ```
 
 ## Requirements

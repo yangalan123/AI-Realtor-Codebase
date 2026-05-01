@@ -4,10 +4,13 @@ import os
 
 if __name__ == '__main__':
 
-    api_key = "[your-key]"
-    os.environ['OPENAI_API_KEY'] = api_key
-    # chat_manager = OpenAIChatManager(api_key)
-    chat_manager = OpenAI(api_key=api_key, organization='[your-org]', )
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("Set OPENAI_API_KEY in the environment before running this script.")
+    client_kwargs = {"api_key": api_key}
+    if os.environ.get("OPENAI_ORG_ID"):
+        client_kwargs["organization"] = os.environ["OPENAI_ORG_ID"]
+    chat_manager = OpenAI(**client_kwargs)
     model = "gpt-4-turbo"
     template = f"""Imagine you are a seller agent and you want to sell a house to the customer. 
     We have some preferences from the customer, given in the format of (listings, preferences).

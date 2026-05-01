@@ -1,4 +1,5 @@
 import sqlite3
+import argparse
 import pandas as pd
 import json
 from datetime import datetime
@@ -6,6 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pickle
+from pathlib import Path
 
 
 class EloRating:
@@ -42,10 +44,57 @@ class EloRating:
     def get_ratings(self):
         return self.ratings
 
-### load rating from pickle
+def parse_args():
+    parser = argparse.ArgumentParser(description="Plot Elo ratings for AI Realtor systems.")
+    parser.add_argument(
+        "--ratings-pkl",
+        default="ratings.pkl",
+        help="Path to a pickled EloRating object or plain ratings dictionary.",
+    )
+    parser.add_argument(
+        "--output",
+        default="elo_ratings_grouped.pdf",
+        help="Output PDF path.",
+    )
+    return parser.parse_args()
 
-with open('ratings.pkl', 'rb') as f:
-    elo = pickle.load(f)
+
+def load_elo_rating(path):
+    ratings_path = Path(path)
+    if not ratings_path.exists():
+        raise FileNotFoundError(
+            f"{ratings_path} does not exist. The original ratings.pkl is not distributed "
+            "because it may contain privacy/ethics-sensitive evaluation artifacts. "
+            "For a smoke test, run: python benchmark/generate_synthetic_ratings.py "
+            "--output ratings.synthetic.pkl, then rerun this script with "
+            "--ratings-pkl ratings.synthetic.pkl."
+        )
+
+    with ratings_path.open('rb') as f:
+        loaded = pickle.load(f)
+
+    if isinstance(loaded, dict):
+        elo = EloRating()
+        elo.ratings = loaded
+        return elo
+    if hasattr(loaded, "get_rating"):
+        return loaded
+    if hasattr(loaded, "ratings"):
+        elo = EloRating()
+        elo.ratings = loaded.ratings
+        return elo
+    raise TypeError(f"Unsupported ratings object in {ratings_path}: {type(loaded).__name__}")
+
+
+def adjusted_lightness(color, lightness):
+    return tuple(np.clip(sns.set_hls_values(color, l=lightness), 0, 1))
+
+
+args = parse_args()
+try:
+    elo = load_elo_rating(args.ratings_pkl)
+except (FileNotFoundError, TypeError) as exc:
+    raise SystemExit(str(exc)) from exc
 
 
 ### rename the model name
@@ -133,8 +182,8 @@ for i, (group, models) in enumerate(model_groups.items()):
     # Create slightly different colors for bars within the same group
     group_colors = [base_colors[i]] * num_models
     if num_models > 1:
-        group_colors[0] = sns.set_hls_values(base_colors[i], l=.5)  # Darken first bar
-        group_colors[1] = sns.set_hls_values(base_colors[i], l=.7)  # Lighten second bar
+        group_colors[0] = adjusted_lightness(base_colors[i], .5)  # Darken first bar
+        group_colors[1] = adjusted_lightness(base_colors[i], .7)  # Lighten second bar
     
     for j, (position, rating, model) in enumerate(zip(positions, group_ratings, models)):
         rect = ax.bar(position, rating, bar_width, color=group_colors[j])
@@ -196,7 +245,7 @@ ax.spines['right'].set_visible(False)
 
 # Adjust layout and save
 plt.tight_layout()
-plt.savefig('elo_ratings_grouped.pdf', bbox_inches='tight')
+plt.savefig(args.output, bbox_inches='tight')
 plt.close()
 
 

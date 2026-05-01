@@ -229,8 +229,11 @@ if __name__ == '__main__':
     test_input_data = get_input_data(args.input_data)
     # retrieval_database = get_retrieval_data(args.retrieval_data)
 
-    es = Elasticsearch(["https://localhost:9200/", ], basic_auth=("chrome", "ych_dsi_uchicago_es"), verify_certs=False,
-                       ssl_show_warn=False)
+    es_url = os.environ.get("ELASTICSEARCH_URL", "https://localhost:9200/")
+    es_username = os.environ.get("ELASTICSEARCH_USERNAME")
+    es_password = os.environ.get("ELASTICSEARCH_PASSWORD")
+    basic_auth = (es_username, es_password) if es_username and es_password else None
+    es = Elasticsearch([es_url], basic_auth=basic_auth, verify_certs=False, ssl_show_warn=False)
 
     index_settings = {
         "mappings": {

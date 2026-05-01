@@ -1,11 +1,8 @@
 import os
-os.environ[
-    "OPENAI_API_KEY"] = "YOUR_KEY"
 import json
 from collections import Counter
 import traceback
 import pickle
-import os
 import csv
 from openai import OpenAI
 from pydantic import BaseModel

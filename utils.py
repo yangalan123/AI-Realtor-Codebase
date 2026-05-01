@@ -1,12 +1,13 @@
 import subprocess
-import torch
+import os
 import json
 from const import desired_to_originals, DESIRED_FEATURE_NAMES
 import re
 from difflib import SequenceMatcher
-from datasets import load_dataset
 
 def get_original_all_features_data():
+    from datasets import load_dataset
+
     dataset = load_dataset("Sigma-Lab/AI_Realtor_Listing_Data")['train']
     if not os.path.exists("./data"):
         os.makedirs("./data")
@@ -29,6 +30,8 @@ def judge_empty_value(value):
     return True
 
 def get_all_not_nan_features():
+    import torch
+
     filename = "all_not_nan_features.pt"
     return torch.load(filename)
 

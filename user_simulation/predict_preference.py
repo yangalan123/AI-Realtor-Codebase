@@ -4,8 +4,6 @@ import json
 import os
 import os.path
 from tqdm.asyncio import tqdm_asyncio
-os.environ[
-    "OPENAI_API_KEY"] = "YOUR_KEY"
 import numpy as np
 import torch
 from langchain.output_parsers import PydanticOutputParser

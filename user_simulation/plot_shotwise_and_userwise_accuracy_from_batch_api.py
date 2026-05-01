@@ -2,7 +2,7 @@
 import torch
 import json
 import os
-from formal_codebase.user_simulation.predicting_preference_batch_api import log_statistics
+from user_simulation.predicting_preference_batch_api import log_statistics
 
 data = "responses_latest.json"
 users = json.load(open(data, "r", encoding='utf-8'))

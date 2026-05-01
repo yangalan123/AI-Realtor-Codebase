@@ -1,7 +1,4 @@
 import os
-
-os.environ[
-    "OPENAI_API_KEY"] = "YOUR_KEY"
 import os.path
 import json
 import numpy as np

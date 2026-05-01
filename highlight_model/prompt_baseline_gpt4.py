@@ -80,10 +80,13 @@ if __name__ == '__main__':
         ids_count += 1
         if ids_count >= 100:
             break
-    api_key = "[your-key]"
-    os.environ['OPENAI_API_KEY'] = api_key
-    # chat_manager = OpenAIChatManager(api_key)
-    chat_manager = OpenAI(api_key=api_key, organization='org-nXJFZp9biBJ8I9Xtlbihfo0T',)
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("Set OPENAI_API_KEY in the environment before running this script.")
+    client_kwargs = {"api_key": api_key}
+    if os.environ.get("OPENAI_ORG_ID"):
+        client_kwargs["organization"] = os.environ["OPENAI_ORG_ID"]
+    chat_manager = OpenAI(**client_kwargs)
     # llm = LLM(model=args.model, tensor_parallel_size=4, gpu_memory_utilization=0.8, max_logprobs=10, seed=42)
     # sampling_params = SamplingParams(n=1, max_tokens=args.max_tokens, logprobs=10)
     # split ids into batches, after each batch, save the results
