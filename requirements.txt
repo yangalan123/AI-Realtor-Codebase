@@ -90,6 +90,7 @@ rich
 rsa
 safetensors
 scipy
+seaborn
 sentencepiece
 sentence-transformers
 sentry-sdk
